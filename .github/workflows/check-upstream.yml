@@ -1,0 +1,97 @@
+name: Check upstream Twemoji
+
+on:
+  schedule:
+    - cron: '0 8 * * 1'
+  workflow_dispatch:
+
+jobs:
+  check:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      pull-requests: write
+    steps:
+      - name: Checkout
+        uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          persist-credentials: false
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@8ecb39174989ce55af90f45cf55b02738599831d # v1.6.0
+        with:
+          node-version: '24.14.1'
+          cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+
+      - name: Install font toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fontforge
+
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
+
+      - name: Install Python helpers
+        run: python -m pip install -e .
+
+      - name: Check repo
+        run: vp run check
+
+      - name: Run tests
+        run: vp run test
+
+      - id: upstream
+        name: Check upstream version
+        shell: bash
+        run: |
+          vp run check:upstream > upstream.json
+          echo "needs_update=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('upstream.json', 'utf8')).needsUpdate))")" >> "$GITHUB_OUTPUT"
+          echo "latest=$(node -e "process.stdout.write(String(JSON.parse(require('fs').readFileSync('upstream.json', 'utf8')).latest))")" >> "$GITHUB_OUTPUT"
+
+      - name: Stop when no update is needed
+        if: steps.upstream.outputs.needs_update != 'true'
+        run: echo "No update needed"
+
+      - name: Refresh pinned source snapshot
+        if: steps.upstream.outputs.needs_update == 'true'
+        env:
+          TWEMOJI_VERSION: ${{ steps.upstream.outputs.latest }}
+        run: vp run prepare:upstream -- "$TWEMOJI_VERSION"
+
+      - name: Rebuild package
+        if: steps.upstream.outputs.needs_update == 'true'
+        run: vp run verify
+
+      - name: Write Knope change file
+        if: steps.upstream.outputs.needs_update == 'true'
+        shell: bash
+        env:
+          TWEMOJI_VERSION: ${{ steps.upstream.outputs.latest }}
+        run: |
+          mkdir -p .changeset
+          cat > ".changeset/twemoji-${TWEMOJI_VERSION}.md" <<EOF
+          ---
+          default: patch
+          ---
+
+          Update to Twemoji ${TWEMOJI_VERSION}.
+          EOF
+
+      - name: Create PR
+        if: steps.upstream.outputs.needs_update == 'true'
+        uses: peter-evans/create-pull-request@5f6978faf089d4d20b00c7766989d076bb2fc7f1 # v8.1.1
+        with:
+          token: ${{ secrets.GITHUB_TOKEN }}
+          commit-message: 'chore: update twemoji to ${{ steps.upstream.outputs.latest }}'
+          title: 'chore: update twemoji to ${{ steps.upstream.outputs.latest }}'
+          body: |
+            Upstream Twemoji release detected.
+
+            - Upstream version: ${{ steps.upstream.outputs.latest }}
+            - Package rebuilt and verified in CI
+          branch: chore/update-twemoji-${{ steps.upstream.outputs.latest }}

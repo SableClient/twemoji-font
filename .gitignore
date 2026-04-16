@@ -1,3 +1,9 @@
 /node_modules
 /build
+/dist
+/package
+/.tsbuildinfo
+/.cache/twemoji
+/*.tgz
+/*.egg-info
 npm-debug.log*

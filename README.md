@@ -1,43 +1,106 @@
-# twemoji-colr
+# @sableclient/twemoji-font
 
-Project to create a COLR/CPAL-based color OpenType font
-from the [Twemoji](https://twitter.github.io/twemoji/) collection of emoji images.
+Sable-maintained Twemoji COLR font package for web apps.
 
-Note that the resulting font will **only** be useful on systems that support
-layered color TrueType fonts; this includes Windows 8.1 and later,
-as well as Mozilla Firefox and other Gecko-based applications running on
-any platform.
+## Install
 
-Systems that do not support such color fonts will show blank glyphs
-if they try to use this font.
+```bash
+pnpm add @sableclient/twemoji-font
+```
 
-## Getting started
+## Use the CSS entrypoint
 
-This project makes use of [grunt-webfonts](https://github.com/L2jLiga/grunt-webfonts)
-and an additional [node.js](https://nodejs.org/en/) script.
-Therefore, installation of Node.js (and its package manager [npm](https://www.npmjs.com/)) is a prerequisite.
-Grunt will be installed as a package dependency — no need to install it globally.
+```js
+import '@sableclient/twemoji-font';
+```
 
-The necessary tools can be installed via npm:
+## Use the raw asset
 
-    # install dependencies from packages.json, including `grunt-webfonts`.
-    npm install
+```js
+import fontUrl from '@sableclient/twemoji-font/font';
+```
 
-The build process also requires [fontforge](https://fontforge.github.io/)
-and the TTX script from the [font-tools](https://github.com/behdad/fonttools/) package to be installed, and assumes standard Perl and Python are available.
+## Release flow
 
-Both FontForge and font-tools can be installed via `homebrew` on OS X, or package managers on Linux:
+1. Add a change file with `knope document-change`, or let the upstream update workflow create one for Twemoji refresh PRs.
+2. Merge the change into `master`.
+3. CI opens a release PR from `release` with the version bump and changelog updates.
+4. Merging that release PR tags the commit, creates the GitHub release, and publishes the package to npm with trusted publishing.
 
-    # OS X
-    brew install fonttools fontforge
+## Maintainer setup
 
-    # Ubuntu, for example
-    sudo apt install fonttools fontforge python3-fontforge
+This repo keeps the upstream font-generation pipeline and packages the generated assets for npm distribution.
+Repo-owned build helpers live under `scripts/`.
+Use `vp` as the command front-end; repo commands are defined in `package.json`.
 
-## Building the font
+Canonical local setup:
 
-Once the necessary build tools are all in place, simply running
+1. `vp env install`
+2. `vp install`
+3. `python -m pip install -e .`
+4. Install [FontForge](https://fontforge.github.io/) so `fontforge` and `ffpython` are on `PATH`, or set `FONTFORGE` and `FFPYTHON`.
+5. Optional: install native `ttfautohint` or set `TTFAUTOHINT` if you do not want to use the Python wheel fallback.
 
-    make
+`python -m pip install -e .` installs `fonttools[woff]` and `ttfautohint-py`. The owned runner still requires native FontForge for raw TTF generation, then uses either `ttfautohint` on `PATH` or `python -m ttfautohint` for hinting.
 
-should build the color-emoji font `build/Twemoji Mozilla.ttf` from the source SVG files found in `twe-svg.zip` file and `extras`, `overrides` directories.
+Build the source font with:
+
+```bash
+vp run build:font
+```
+
+Run the fast static checks with:
+
+```bash
+vp run check
+```
+
+Run the linter only with:
+
+```bash
+vp run lint
+```
+
+Run the formatter only with:
+
+```bash
+vp run fmt
+```
+
+Run the test suite with:
+
+```bash
+vp run test
+```
+
+Run the full local verification path with:
+
+```bash
+vp run verify
+```
+
+Check for new upstream releases with:
+
+```bash
+vp run check:upstream
+```
+
+Refresh the pinned upstream source cache from the exact current `gh-pages` commit for a release version with:
+
+```bash
+vp run prepare:upstream -- 17.0.2
+```
+
+That command updates `package.json` `twemoji` metadata and warms `.cache/twemoji/<commit>/svg`.
+
+Repin and update workflow actions with:
+
+```bash
+pinact run -u .github/workflows/check-upstream.yml .github/workflows/prepare-release.yml .github/workflows/release.yml
+```
+
+Audit workflow security with:
+
+```bash
+zizmor .github/workflows/check-upstream.yml .github/workflows/prepare-release.yml .github/workflows/release.yml
+```

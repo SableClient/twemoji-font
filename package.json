@@ -1,44 +1,74 @@
 {
-  "name": "twemoji-colr",
-  "description": "Twemoji font in COLR/CPAL layered format.",
-  "version": "17.0.0",
-  "license": "Apache-2.0",
-  "author": "Jonathan Kew <jfkthame@gmail.com>",
-  "contributors": [
-    "Tim Guan-tin Chien <timdream@gmail.com>",
-    "Essem <smswessem@gmail.com>",
-    "Gregory <https://github.com/GrSto>",
-    "Tilman Vatteroth <git@tilmanvatteroth.de>",
-    "Lim Chunwei <https://github.com/win98se>"
+  "name": "@sableclient/twemoji-font",
+  "version": "1.0.0",
+  "private": false,
+  "description": "Sable-maintained Twemoji COLR font package for web apps.",
+  "keywords": [
+    "colr",
+    "emoji",
+    "twemoji",
+    "unicode"
   ],
+  "homepage": "https://github.com/SableClient/twemoji-font#readme",
   "bugs": {
-    "url": "https://github.com/mozilla/twemoji-colr/issues"
+    "url": "https://github.com/SableClient/twemoji-font/issues"
   },
+  "license": "Apache-2.0",
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/mozilla/twemoji-colr.git"
+    "url": "git+https://github.com/SableClient/twemoji-font.git"
+  },
+  "files": [
+    "dist"
+  ],
+  "type": "module",
+  "exports": {
+    ".": "./dist/index.css",
+    "./font": "./dist/twemoji.woff2"
+  },
+  "scripts": {
+    "build:font": "node scripts/build-font.ts",
+    "build:package": "node scripts/package/build-package.ts",
+    "build": "vp run build:font && vp run build:package",
+    "typecheck": "tsc -p tsconfig.json",
+    "smoke": "node scripts/package/smoke-test-package.ts",
+    "check:upstream": "node scripts/upstream/check-upstream.ts",
+    "prepare:upstream": "node scripts/upstream/publish-prepare.ts",
+    "check:repeatability": "node scripts/verify/check-build-repeatability.ts",
+    "test": "vp test run",
+    "lint": "vp lint",
+    "fmt": "vp fmt",
+    "check": "vp check",
+    "verify": "vp run build && vp run test && vp run typecheck && vp run smoke && vp run check:repeatability"
   },
   "dependencies": {
     "emojibase-data": "^17.0.0",
-    "grunt": "^1.6.1",
-    "grunt-cli": "^1.5.0",
-    "grunt-webfonts": "^5.1.0",
-    "load-grunt-tasks": "^5.1.0",
     "unzipper": "^0.12.3",
     "xml2js": "^0.6.2",
     "xmlbuilder": "^15.1.1"
   },
-  "keywords": [
-    "emoji",
-    "colr",
-    "twemoji",
-    "unicode"
-  ],
-  "homepage": "https://github.com/mozilla/twemoji-colr#readme",
   "devDependencies": {
-    "resemblejs": "^5.0.0"
+    "@types/node": "^24.1.0",
+    "@types/unzipper": "^0.10.11",
+    "@types/xml2js": "^0.4.14",
+    "@voidzero-dev/vite-plus-core": "^0.1.18",
+    "typescript": "^6.0.2",
+    "vite-plus": "^0.1.18",
+    "vitest": "^4.1.4"
   },
-  "scripts": {
-    "grunt": "grunt"
+  "engines": {
+    "node": "24.14.1"
+  },
+  "packageManager": "pnpm@10.33.0+sha512.10568bb4a6afb58c9eb3630da90cc9516417abebd3fabbe6739f0ae795728da1491e9db5a544c76ad8eb7570f5c4bb3d6c637b2cb41bfdcdb47fa823c8649319",
+  "pnpm": {
+    "overrides": {
+      "vite": "npm:@voidzero-dev/vite-plus-core@^0.1.18",
+      "vitest": "npm:@voidzero-dev/vite-plus-test@^0.1.18"
+    }
+  },
+  "twemoji": {
+    "version": "17.0.2",
+    "commit": "40c2213f8f9bc53b1188fdae325a63a82ffb5bec",
+    "source": "https://github.com/jdecked/twemoji/tree/40c2213f8f9bc53b1188fdae325a63a82ffb5bec/v/17.0.2/svg"
   }
 }
