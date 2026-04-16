@@ -1,19 +1,31 @@
-Thank you for your interest on contributing!
-Below are things to do manually whenever you want to produce a new release.
+Thank you for your interest in contributing.
 
-1. Go to the [Twemoji releases](https://github.com/twitter/twemoji/releases) page and find the most recent release.
-2. Download the zip or tar.gz file.
-3. Replace the in-tree `twe-svg.zip` file.
-4. Amend the `twe-svg.zip.version.txt` file and paste the URL of the released zip you've downloaded.
-5. Amend the version number `package.json`.
-6. Run the build command with `make`. Please look at [README.md](./README.md) to figure out dependencies and how to install them.
+Release maintenance is scripted now. Use the commands in [README.md](./README.md) instead of editing browser test fixtures by hand.
+Repo-owned build helpers live under `scripts/`.
 
-The resulting font can be found at `build/Twemoji Mozilla.ttf`.
+Toolchain setup:
 
-You would need to ensure the glyph layers are converted correctly by running our test suite.
+1. Run `vp env install`.
+2. Run `vp install`.
+3. Run `python -m pip install -e .` to install `fonttools[woff]` and `ttfautohint-py`.
+4. Install FontForge so `fontforge` and `ffpython` are available.
+5. Optional: install native `ttfautohint` if you do not want to use the Python wheel fallback.
 
-1. Start a localhost server at the working directory. You can do that by running `python3 -m http.server 28009`.
-2. Navigate to `http://localhost:28009/tests/` with Firefox.
-3. Ensure you can see the Twemoji smiling face on the title (indicated the web font is loaded), hit "Test all".
-4. Give it a few minutes to compare all glyphs.
-5. Observe the flagged items; generally there are a lot of false negatives, we should look at missing strokes or layers that could really affect the visual look of the glyph.
+Typical flow:
+
+1. Run `knope document-change` to create a release note file in `.changeset/` for any user-facing change.
+2. Run `vp run check:upstream` to see whether Twemoji has a newer release.
+3. Run `vp run prepare:upstream -- <version>` after you decide to refresh the pinned upstream source.
+4. That command updates `package.json` `twemoji` metadata and warms `.cache/twemoji/<commit>/svg` from the exact current `gh-pages` commit.
+5. Run `vp run check`.
+6. Run `vp run lint` and `vp run fmt` if you want the individual Vite+ passes.
+7. Run `vp run test`.
+8. Run `vp run verify` to rebuild the font, run Vite+ tests, run typechecks, and smoke-test the package output.
+
+Release automation:
+
+1. Merge changes with a `.changeset` entry into `master`.
+2. `.github/workflows/prepare-release.yml` opens or updates the release PR.
+3. Merging the release PR runs `.github/workflows/release.yml`, which tags the release, creates the GitHub release, and publishes to npm.
+
+The built font lands in `build/Twemoji Mozilla.ttf`. The publishable package files land in `dist/`.

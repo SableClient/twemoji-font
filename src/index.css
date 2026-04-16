@@ -1,0 +1,5 @@
+@font-face {
+  font-family: 'Twemoji';
+  src: url('./twemoji.woff2') format('woff2');
+  font-display: swap;
+}

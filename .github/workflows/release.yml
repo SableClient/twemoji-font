@@ -1,0 +1,80 @@
+name: Release
+
+on:
+  pull_request:
+    types: [closed]
+    branches: [master]
+
+permissions: {}
+
+jobs:
+  release:
+    if: github.head_ref == 'release' && github.event.pull_request.merged == true
+    runs-on: ubuntu-latest
+    permissions:
+      contents: write
+      id-token: write
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@8ecb39174989ce55af90f45cf55b02738599831d # v1.6.0
+        with:
+          node-version: '24.14.1'
+          cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version: '3.13'
+
+      - name: Install font toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fontforge
+
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
+
+      - name: Install Python helpers
+        run: python -m pip install -e .
+
+      - name: Check repo
+        run: vp run check
+
+      - name: Run tests
+        run: vp run test
+
+      - name: Verify package
+        run: vp run verify
+
+      - uses: knope-dev/action@19617851f9f13ab2f27a05989c55efb18aca3675 # v2.1.2
+        with:
+          version: 0.22.3
+
+      - name: Create Release
+        run: knope release --verbose
+        env:
+          GITHUB_TOKEN: ${{ github.token }}
+
+      - id: package-version
+        name: Check whether the version is already published
+        shell: bash
+        run: |
+          VERSION=$(node -p "JSON.parse(require('fs').readFileSync('package.json', 'utf8')).version")
+          if npm view "@sableclient/twemoji-font@${VERSION}" version >/dev/null 2>&1; then
+            echo "should_publish=false" >> "$GITHUB_OUTPUT"
+          else
+            echo "should_publish=true" >> "$GITHUB_OUTPUT"
+          fi
+
+      - name: Skip when version already exists
+        if: steps.package-version.outputs.should_publish != 'true'
+        run: echo "Package version already published; skipping npm publish"
+
+      - name: Publish
+        if: steps.package-version.outputs.should_publish == 'true'
+        run: npm publish --provenance --access public
