@@ -13,8 +13,15 @@ const rawFontNames = `${rawFont}.names`;
 const rawFontTemporary = join(buildDir, 'raw-font', `${fontName}.temporary.ttf`);
 const finalTarget = join(buildDir, `${fontName}.ttf`);
 const otSource = join(buildDir, `${fontName}.ttx`);
+const uvsMappingsSource = join(buildDir, 'uvs-mappings.json');
 const layerizeScript = join(root, 'scripts', 'layerize', 'layerize.ts');
 const fixDirectionScript = join(root, 'scripts', 'font', 'fix-direction.py');
+const addVariationSelectorMappingsScript = join(
+  root,
+  'scripts',
+  'font',
+  'add-variation-selector-mappings.py',
+);
 const normalizeFontMetadataScript = join(root, 'scripts', 'font', 'normalize-font-metadata.py');
 
 function logStage(message: string): void {
@@ -158,6 +165,10 @@ export async function buildFont(): Promise<void> {
       env,
     },
   );
+  logStage('adding Unicode variation selector mappings');
+  run(python, [addVariationSelectorMappingsScript, finalTarget, uvsMappingsSource], { env });
+  logStage('normalizing final font metadata');
+  run(python, [normalizeFontMetadataScript, finalTarget], { env });
   logStage('final TTF ready');
 }
 

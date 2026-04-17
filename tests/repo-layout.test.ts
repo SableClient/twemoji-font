@@ -10,6 +10,11 @@ describe('repo script layout', () => {
       true,
     );
     expect(existsSync(new URL('../scripts/font/fontforge-runner.ts', import.meta.url))).toBe(true);
+    expect(
+      existsSync(
+        new URL('../scripts/font/add-variation-selector-mappings.py', import.meta.url),
+      ),
+    ).toBe(true);
     expect(existsSync(new URL('../scripts/font/normalize-font-metadata.py', import.meta.url))).toBe(
       true,
     );

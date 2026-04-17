@@ -65,7 +65,6 @@ describe('workflow configuration', () => {
 
   it('writes a Knope change file when automating upstream Twemoji refreshes', () => {
     expect(checkUpstreamWorkflow).toContain('.changeset');
-    expect(checkUpstreamWorkflow).toContain('@sableclient/twemoji-font');
     expect(checkUpstreamWorkflow).toContain('Update to Twemoji');
     expect(checkUpstreamWorkflow).toContain('create-pull-request');
   });

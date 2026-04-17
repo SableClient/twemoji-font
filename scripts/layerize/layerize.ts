@@ -1,6 +1,13 @@
 import fs from 'node:fs';
 import xmlbuilder from 'xmlbuilder';
 import xml2js from 'xml2js';
+import {
+  getEmojiVariationSequenceMapping,
+  isTextPresentationBase,
+  shouldEncodeBaseCodepoint,
+  shouldSkipTextPresentationSequence,
+  type EmojiVariationSequenceMapping,
+} from './emoji-variation-sequences.ts';
 import { createLayerSvg, type SvgNode } from './layerize-svg.ts';
 import {
   sortCodepointEntries,
@@ -22,7 +29,7 @@ type PartialBoundingBox = [
 ];
 type LayerPathGroup = { color: string; paths: SvgNode[] };
 type LayerComponent = { color: string; glyphName: string };
-type CharRecord = { unicode: string; components: LayerComponent[] };
+type CharRecord = { unicode: string; components: LayerComponent[]; glyphName?: string };
 type LigatureRecord = OrderedLigatureRecord & { components: LayerComponent[]; glyphName?: string };
 type ExtraLigature = OrderedLigatureRecord & { glyphName?: string };
 type SvgDefs = Record<string, SvgNode>;
@@ -83,6 +90,7 @@ let colors: string[] = [];
 let colorToId: ColorIdMap = {};
 
 let codepoints: string[] = [];
+let uvsMappings: EmojiVariationSequenceMapping[] = [];
 
 function cloneSvgNode(node: SvgNode): SvgNode {
   return JSON.parse(JSON.stringify(node)) as SvgNode;
@@ -425,7 +433,10 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
   }
 
   // skip (C), (R), (TM), and (M) characters, but not their aliases
-  if (baseName === 'a9' || baseName === 'ae' || baseName === '2122' || baseName === '24c2') return;
+  if (isTextPresentationBase(baseName)) return;
+
+  const sequenceUnicodes = baseName.split('-');
+  if (shouldSkipTextPresentationSequence(sequenceUnicodes)) return;
 
   var parser = new xml2js.Parser({
     preserveChildrenOrder: true,
@@ -437,7 +448,7 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
   fs.writeFileSync(targetDir + '/colorGlyphs/u' + baseName + '.svg', data);
 
   // split name of glyph that corresponds to multi-char ligature
-  var unicodes = baseName.split('-');
+    var unicodes = sequenceUnicodes;
 
   parser.parseString(data, function (err: Error | null, rawResult: unknown) {
     if (err) {
@@ -630,9 +641,33 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
       layerIndex = layerIndex + 1;
     });
 
+    const emojiVariationSequence = getEmojiVariationSequenceMapping(unicodes);
+
     if (unicodes.length === 1) {
       // simple character (single codepoint)
       chars.push({ unicode: unicodes[0], components: layers });
+      unicodes.forEach(function (u: string) {
+        // make sure we have a placeholder glyph for the individual character, or for each component of the ligature
+        fs.writeFileSync(
+          targetDir + '/glyphs/u' + u + '.svg',
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" enable-background="new 0 0 64 64"></svg>',
+        );
+        codepoints.push(
+          '"u' + u + '": ' + (shouldEncodeBaseCodepoint(u) ? parseInt(u, 16) : -1),
+        );
+      });
+    } else if (emojiVariationSequence !== null) {
+      chars.push({
+        unicode: emojiVariationSequence.base,
+        glyphName: emojiVariationSequence.glyphName,
+        components: layers,
+      });
+      uvsMappings.push(emojiVariationSequence);
+      fs.writeFileSync(
+        targetDir + '/glyphs/' + emojiVariationSequence.glyphName + '.svg',
+        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" enable-background="new 0 0 64 64"></svg>',
+      );
+      codepoints.push('"' + emojiVariationSequence.glyphName + '": -1');
     } else {
       ligatures.push({ unicodes: unicodes, components: layers });
       // create the placeholder glyph for the ligature (to be mapped to a set of color layers)
@@ -641,15 +676,17 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" enable-background="new 0 0 64 64"></svg>',
       );
       codepoints.push('"u' + unicodes.join('_') + '": -1');
+      unicodes.forEach(function (u: string) {
+        // make sure we have a placeholder glyph for the individual character, or for each component of the ligature
+        fs.writeFileSync(
+          targetDir + '/glyphs/u' + u + '.svg',
+          '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" enable-background="new 0 0 64 64"></svg>',
+        );
+        codepoints.push(
+          '"u' + u + '": ' + (shouldEncodeBaseCodepoint(u) ? parseInt(u, 16) : -1),
+        );
+      });
     }
-    unicodes.forEach(function (u: string) {
-      // make sure we have a placeholder glyph for the individual character, or for each component of the ligature
-      fs.writeFileSync(
-        targetDir + '/glyphs/u' + u + '.svg',
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" enable-background="new 0 0 64 64"></svg>',
-      );
-      codepoints.push('"u' + u + '": ' + parseInt(u, 16));
-    });
   });
 }
 
@@ -679,11 +716,13 @@ function generateTTX() {
   var COLR = ttFont.ele('COLR');
   COLR.ele('version', { value: 0 });
   chars.forEach(function (ch) {
-    var colorGlyph = COLR.ele('ColorGlyph', { name: 'u' + ch.unicode });
+    var colorGlyphName = ch.glyphName || 'u' + ch.unicode;
+    var layerInfoKey = ch.glyphName ? ch.glyphName.replace(/^u/, '') : ch.unicode;
+    var colorGlyph = COLR.ele('ColorGlyph', { name: colorGlyphName });
     ch.components.forEach(function (cmp) {
       colorGlyph.ele('layer', { colorID: colorToId[cmp.color], name: 'u' + cmp.glyphName });
     });
-    layerInfo[ch.unicode] = ch.components.map(function (cmp) {
+    layerInfo[layerInfoKey] = ch.components.map(function (cmp) {
       return 'u' + cmp.glyphName;
     });
   });
@@ -705,6 +744,27 @@ function generateTTX() {
       orderedLayerInfo[key] = layerInfo[key];
     });
   fs.writeFileSync(targetDir + '/layer_info.json', JSON.stringify(orderedLayerInfo, null, 2));
+  fs.writeFileSync(
+    targetDir + '/uvs-mappings.json',
+    JSON.stringify(
+      [...uvsMappings]
+        .sort(function (a, b) {
+          if (a.base !== b.base) {
+            return a.base.localeCompare(b.base, 'en');
+          }
+          return a.selector.localeCompare(b.selector, 'en');
+        })
+        .map(function (mapping) {
+          return {
+            unicode: parseInt(mapping.base, 16),
+            variationSelector: parseInt(mapping.selector, 16),
+            glyphName: mapping.glyphName,
+          };
+        }),
+      null,
+      2,
+    ),
+  );
 
   // CPAL table maps color index values to RGB colors
   var CPAL = ttFont.ele('CPAL');
@@ -807,7 +867,7 @@ function collectSvgRecords(sourceDir: string): SvgRecord[] {
 
 async function main() {
   logStage('preparing build directories');
-  fs.mkdirSync(targetDir);
+  fs.mkdirSync(targetDir, { recursive: true });
   fs.mkdirSync(targetDir + '/glyphs');
   fs.mkdirSync(targetDir + '/colorGlyphs');
 
@@ -850,9 +910,8 @@ async function main() {
 }
 
 // Delete and re-create target directory, to remove any pre-existing junk
-fs.rm(targetDir, { recursive: true, force: true }, function () {
-  main().catch(function (err) {
-    console.error(err);
-    process.exit(1);
-  });
+fs.rmSync(targetDir, { recursive: true, force: true });
+main().catch(function (err) {
+  console.error(err);
+  process.exit(1);
 });
