@@ -17,6 +17,7 @@ import {
   sortLigatures,
   sortPalette,
 } from './layerize-order.ts';
+import { normalizeSvgForLayerize } from './normalize-svg.ts';
 
 type SvgAttributes = NonNullable<SvgNode['$']>;
 type Point = [number, number];
@@ -149,7 +150,7 @@ function decodePath(d: string): Point[] {
   var result: Point[] = [];
   var segStart: Point | undefined = [0, 0];
   while (d !== '') {
-    var matches = d.match('^s*([MmLlHhVvCcZzSsTtQqAa])');
+    var matches = d.match('^\\s*([MmLlHhVvCcZzSsTtQqAa])');
     if (!matches) {
       break;
     }
@@ -400,6 +401,11 @@ function addOrMerge(paths: LayerPathGroup[], p: SvgNode, color: string): void {
 }
 
 function processFile(fileName: string, data: string | Buffer, withAliases = true): void {
+  var normalizedData = normalizeSvgForLayerize(
+    typeof data === 'string' ? data : data.toString('utf8'),
+    fileName,
+  );
+
   // strip .svg extension off the name
   var baseName = fileName.replace('.svg', '');
   if (withAliases) {
@@ -427,7 +433,7 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
         if (alias === codePt) continue;
         var aFile = alias.toLowerCase();
         while (aFile.slice(0, 1) === '0') aFile = aFile.slice(1);
-        processFile(aFile + '.svg', data, false);
+        processFile(aFile + '.svg', normalizedData, false);
       }
     }
   }
@@ -444,13 +450,13 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
     explicitArray: true,
   });
 
-  // Save the original file also for visual comparison
-  fs.writeFileSync(targetDir + '/colorGlyphs/u' + baseName + '.svg', data);
+  // Save the normalized file also for visual comparison against the final build inputs.
+  fs.writeFileSync(targetDir + '/colorGlyphs/u' + baseName + '.svg', normalizedData);
 
   // split name of glyph that corresponds to multi-char ligature
-    var unicodes = sequenceUnicodes;
+  var unicodes = sequenceUnicodes;
 
-  parser.parseString(data, function (err: Error | null, rawResult: unknown) {
+  parser.parseString(normalizedData, function (err: Error | null, rawResult: unknown) {
     if (err) {
       throw err;
     }
@@ -652,9 +658,7 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
           targetDir + '/glyphs/u' + u + '.svg',
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" enable-background="new 0 0 64 64"></svg>',
         );
-        codepoints.push(
-          '"u' + u + '": ' + (shouldEncodeBaseCodepoint(u) ? parseInt(u, 16) : -1),
-        );
+        codepoints.push('"u' + u + '": ' + (shouldEncodeBaseCodepoint(u) ? parseInt(u, 16) : -1));
       });
     } else if (emojiVariationSequence !== null) {
       chars.push({
@@ -682,9 +686,7 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
           targetDir + '/glyphs/u' + u + '.svg',
           '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 64 64" enable-background="new 0 0 64 64"></svg>',
         );
-        codepoints.push(
-          '"u' + u + '": ' + (shouldEncodeBaseCodepoint(u) ? parseInt(u, 16) : -1),
-        );
+        codepoints.push('"u' + u + '": ' + (shouldEncodeBaseCodepoint(u) ? parseInt(u, 16) : -1));
       });
     }
   });

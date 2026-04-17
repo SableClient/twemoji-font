@@ -59,7 +59,10 @@ describe('emoji variation sequence handling', () => {
   });
 
   it('wires UVS data generation and post-processing into the build pipeline', () => {
-    const layerize = readFileSync(new URL('../scripts/layerize/layerize.ts', import.meta.url), 'utf8');
+    const layerize = readFileSync(
+      new URL('../scripts/layerize/layerize.ts', import.meta.url),
+      'utf8',
+    );
     const buildFont = readFileSync(new URL('../scripts/build-font.ts', import.meta.url), 'utf8');
 
     expect(

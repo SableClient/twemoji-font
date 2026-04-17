@@ -11,9 +11,7 @@ describe('repo script layout', () => {
     );
     expect(existsSync(new URL('../scripts/font/fontforge-runner.ts', import.meta.url))).toBe(true);
     expect(
-      existsSync(
-        new URL('../scripts/font/add-variation-selector-mappings.py', import.meta.url),
-      ),
+      existsSync(new URL('../scripts/font/add-variation-selector-mappings.py', import.meta.url)),
     ).toBe(true);
     expect(existsSync(new URL('../scripts/font/normalize-font-metadata.py', import.meta.url))).toBe(
       true,
@@ -22,6 +20,7 @@ describe('repo script layout', () => {
     expect(existsSync(new URL('../scripts/layerize/layerize-order.ts', import.meta.url))).toBe(
       true,
     );
+    expect(existsSync(new URL('../scripts/layerize/normalize-svg.ts', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../scripts/layerize/layerize-svg.ts', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../scripts/package/build-package.ts', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../scripts/package/smoke-test-package.ts', import.meta.url))).toBe(
@@ -68,9 +67,17 @@ describe('repo script layout', () => {
     expect(existsSync(new URL('./reporter.js', import.meta.url))).toBe(false);
   });
 
+  it('does not keep the retired text-presentation keycap extras', () => {
+    expect(existsSync(new URL('../extras/2122-20e3.svg', import.meta.url))).toBe(false);
+    expect(existsSync(new URL('../extras/24c2-20e3.svg', import.meta.url))).toBe(false);
+    expect(existsSync(new URL('../extras/a9-20e3.svg', import.meta.url))).toBe(false);
+    expect(existsSync(new URL('../extras/ae-20e3.svg', import.meta.url))).toBe(false);
+  });
+
   it('does not keep retired grunt runtime dependencies', () => {
     const pkg = JSON.parse(readFileSync(new URL('../package.json', import.meta.url), 'utf8'));
 
+    expect(pkg.devDependencies?.svgo).toBeDefined();
     expect(Object.keys(pkg.dependencies ?? {})).not.toEqual(
       expect.arrayContaining(['grunt', 'grunt-cli', 'load-grunt-tasks', 'grunt-webfonts']),
     );
@@ -83,6 +90,10 @@ describe('repo script layout', () => {
       'utf8',
     );
     const buildFont = readFileSync(new URL('../scripts/build-font.ts', import.meta.url), 'utf8');
+    const layerize = readFileSync(
+      new URL('../scripts/layerize/layerize.ts', import.meta.url),
+      'utf8',
+    );
 
     expect(lockfile).not.toContain('grunt@1.6.2');
     expect(lockfile).not.toContain('grunt-cli@1.5.0');
@@ -92,6 +103,8 @@ describe('repo script layout', () => {
     expect(fontforgeScript).toContain('f.generate(filename)');
     expect(buildFont).not.toContain("'twe-svg.zip'");
     expect(buildFont).not.toContain("'twe-svg.zip.version.txt'");
+    expect(layerize).toContain("from './normalize-svg.ts'");
+    expect(layerize).toContain('normalizeSvgForLayerize');
   });
 
   it('keeps the raw-font handoff explicit', () => {
