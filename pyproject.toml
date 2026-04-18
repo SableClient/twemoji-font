@@ -6,7 +6,7 @@ build-backend = "setuptools.build_meta"
 name = "twemoji-font-build-tools"
 version = "0.0.0"
 description = "Python build helpers for @sableclient/twemoji-font"
-requires-python = ">=3.11"
+requires-python = ">=3.13,<3.14"
 dependencies = ["fonttools[woff]>=4.60.0", "ttfautohint-py>=0.6.0"]
 
 [tool.setuptools]

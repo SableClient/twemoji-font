@@ -25,7 +25,7 @@ import fontUrl from '@sableclient/twemoji-font/font';
 1. Add a change file with `knope document-change`, or let the upstream update workflow create one for Twemoji refresh PRs.
 2. Merge the change into `master`.
 3. CI opens a release PR from `release` with the version bump and changelog updates.
-4. Merging that release PR tags the commit, creates the GitHub release, and publishes the package to npm with trusted publishing.
+4. Merging that release PR tags the commit, creates the GitHub release, and publishes the package to npm with the repository secret `NPM_TOKEN`.
 
 ## Maintainer setup
 

@@ -13,15 +13,17 @@ const releaseWorkflow = readFileSync(
   new URL('../.github/workflows/release.yml', import.meta.url),
   'utf8',
 );
+const pyproject = readFileSync(new URL('../pyproject.toml', import.meta.url), 'utf8');
 
 describe('workflow configuration', () => {
   it('uses setup-vp for bootstrap and vp script invocations for repo commands', () => {
     for (const workflow of [checkUpstreamWorkflow, releaseWorkflow]) {
       expect(workflow).toContain('voidzero-dev/setup-vp@');
-      expect(workflow).toContain("node-version: '24.14.1'");
+      expect(workflow).toContain("node-version-file: '.node-version'");
       expect(workflow).toContain('cache: true');
       expect(workflow).toContain('actions/setup-python@');
-      expect(workflow).toContain("python-version: '3.13'");
+      expect(workflow).toContain("python-version-file: 'pyproject.toml'");
+      expect(workflow).not.toContain("python-version: '3.13'");
       expect(workflow).toContain('sudo apt-get update');
       expect(workflow).toContain('sudo apt-get install -y fontforge');
       expect(workflow).not.toContain('sudo apt-get install -y fontforge ttfautohint');
@@ -30,9 +32,12 @@ describe('workflow configuration', () => {
       expect(workflow).toContain('vp run check');
       expect(workflow).toContain('vp run test');
       expect(workflow).toContain('vp run verify');
-      expect(workflow).not.toContain('actions/setup-node@');
       expect(workflow).not.toContain('pnpm install --frozen-lockfile');
     }
+
+    expect(checkUpstreamWorkflow).not.toContain('actions/setup-node@');
+    expect(releaseWorkflow).toContain('actions/setup-node@');
+    expect(releaseWorkflow).toContain("registry-url: 'https://registry.npmjs.org'");
   });
 
   it('uses knope release workflows instead of a standalone publish workflow', () => {
@@ -60,6 +65,7 @@ describe('workflow configuration', () => {
     expect(releaseWorkflow).toContain('knope-dev/action@');
     expect(releaseWorkflow).toContain('knope release --verbose');
     expect(releaseWorkflow).toContain('npm publish --provenance --access public');
+    expect(releaseWorkflow).toContain('NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}');
     expect(releaseWorkflow).toContain('id-token: write');
   });
 
@@ -67,5 +73,9 @@ describe('workflow configuration', () => {
     expect(checkUpstreamWorkflow).toContain('.changeset');
     expect(checkUpstreamWorkflow).toContain('Update to Twemoji');
     expect(checkUpstreamWorkflow).toContain('create-pull-request');
+  });
+
+  it('uses pyproject.toml as the Python version source of truth', () => {
+    expect(pyproject).toContain('requires-python = ">=3.13,<3.14"');
   });
 });
