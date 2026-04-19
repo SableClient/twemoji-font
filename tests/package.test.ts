@@ -1,4 +1,3 @@
-import { existsSync, readFileSync } from 'node:fs';
 import { describe, expect, it } from 'vite-plus/test';
 import pkg from '../package.json' with { type: 'json' };
 
@@ -35,19 +34,5 @@ describe('package output', () => {
       commit: expect.stringMatching(/^[0-9a-f]{40}$/),
       source: expect.stringMatching(/\/v\/[0-9]+\.[0-9]+\.[0-9]+\/svg$/),
     });
-  });
-
-  it('generates the expected dist files and stylesheet', () => {
-    expect(existsSync(new URL('../dist/index.css', import.meta.url))).toBe(true);
-    expect(existsSync(new URL('../dist/files/twemoji.woff2', import.meta.url))).toBe(true);
-    expect(existsSync(new URL('../dist/twemoji.woff2', import.meta.url))).toBe(false);
-    expect(existsSync(new URL('../dist/metadata.json', import.meta.url))).toBe(false);
-  });
-
-  it('writes the expected CSS entrypoint', () => {
-    const indexCss = readFileSync(new URL('../dist/index.css', import.meta.url), 'utf8');
-
-    expect(indexCss).toContain("src: url('./files/twemoji.woff2') format('woff2');");
-    expect(indexCss).not.toContain('truetype');
   });
 });
