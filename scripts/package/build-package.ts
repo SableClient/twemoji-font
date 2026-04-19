@@ -1,13 +1,12 @@
-import { cpSync, existsSync, mkdirSync, rmSync } from 'node:fs';
+import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
 
 const root = process.cwd();
 const distDir = join(root, 'dist');
-const inputTtf = join(root, 'build', 'Twemoji Mozilla.ttf');
+const distFilesDir = join(distDir, 'files');
 const inputWoff2 = join(root, 'build', 'Twemoji Mozilla.ttf.woff2');
-const distWoff2 = join(distDir, 'twemoji.woff2');
-const cssSource = join(root, 'src', 'index.css');
+const distWoff2 = join(distFilesDir, 'twemoji.woff2');
 
 function logStage(message: string): void {
   console.log(`[build:package] ${message}`);
@@ -40,6 +39,8 @@ function ensureWoff2(): string {
     return inputWoff2;
   }
 
+  const inputTtf = join(root, 'build', 'Twemoji Mozilla.ttf');
+
   if (!existsSync(inputTtf)) {
     throw new Error(`Missing built font: ${inputWoff2} or ${inputTtf}`);
   }
@@ -58,11 +59,28 @@ function ensureWoff2(): string {
   return inputWoff2;
 }
 
+function createFontFaceCss(src: string): string {
+  return [
+    '@font-face {',
+    "  font-family: 'Twemoji';",
+    `  src: ${src};`,
+    '  font-display: swap;',
+    '}',
+    '',
+  ].join('\n');
+}
+
 logStage('resetting dist/');
 rmSync(distDir, { force: true, recursive: true });
 mkdirSync(distDir, { recursive: true });
+mkdirSync(distFilesDir, { recursive: true });
 
-logStage('copying packaged font and stylesheet');
+logStage('copying packaged font files');
 cpSync(ensureWoff2(), distWoff2);
-cpSync(cssSource, join(distDir, 'index.css'));
+
+logStage('writing CSS entrypoint');
+writeFileSync(
+  join(distDir, 'index.css'),
+  createFontFaceCss("url('./files/twemoji.woff2') format('woff2')"),
+);
 logStage('dist package ready');

@@ -6,7 +6,7 @@ import { join } from 'node:path';
 const root = process.cwd();
 const artifacts = {
   ttf: join(root, 'build', 'Twemoji Mozilla.ttf'),
-  woff2: join(root, 'dist', 'twemoji.woff2'),
+  woff2: join(root, 'dist', 'files', 'twemoji.woff2'),
 };
 
 export interface ArtifactInfo {

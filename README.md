@@ -14,11 +14,13 @@ pnpm add @sableclient/twemoji-font
 import '@sableclient/twemoji-font';
 ```
 
-## Use the raw asset
+## Use the raw asset in bundlers
 
 ```js
-import fontUrl from '@sableclient/twemoji-font/font';
+import fontUrl from '@sableclient/twemoji-font/files/twemoji.woff2?url';
 ```
+
+This raw asset import is intended for bundlers that support `?url` asset imports, such as Vite.
 
 ## Release flow
 

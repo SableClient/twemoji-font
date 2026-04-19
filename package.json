@@ -22,9 +22,29 @@
     "dist"
   ],
   "type": "module",
+  "main": "./dist/index.css",
   "exports": {
-    ".": "./dist/index.css",
-    "./font": "./dist/twemoji.woff2"
+    ".": {
+      "sass": "./dist/index.css",
+      "default": "./dist/index.css"
+    },
+    "./*": {
+      "sass": "./dist/*.css",
+      "default": "./dist/*.css"
+    },
+    "./*.css": {
+      "sass": "./dist/*.css",
+      "default": "./dist/*.css"
+    },
+    "./files/*": {
+      "sass": "./dist/files/*",
+      "default": "./dist/files/*"
+    },
+    "./files/*.woff2": {
+      "sass": "./dist/files/*.woff2",
+      "default": "./dist/files/*.woff2"
+    },
+    "./package.json": "./package.json"
   },
   "scripts": {
     "build:font": "node scripts/build-font.ts",
