@@ -60,16 +60,21 @@ function findRunnable(
   return null;
 }
 
-function fontForgeCandidates(binary: 'fontforge.exe' | 'ffpython.exe'): Array<string | undefined> {
+function fontForgeCandidates(): Array<string | undefined> {
   return [
-    process.env[binary === 'fontforge.exe' ? 'FONTFORGE' : 'FFPYTHON'],
-    binary === 'fontforge.exe' ? 'fontforge' : 'ffpython',
-    join(process.env.ProgramFiles ?? 'C:\\Program Files', 'FontForgeBuilds', 'bin', binary),
+    process.env.FONTFORGE,
+    'fontforge',
+    join(
+      process.env.ProgramFiles ?? 'C:\\Program Files',
+      'FontForgeBuilds',
+      'bin',
+      'fontforge.exe',
+    ),
     join(
       process.env['ProgramFiles(x86)'] ?? 'C:\\Program Files (x86)',
       'FontForgeBuilds',
       'bin',
-      binary,
+      'fontforge.exe',
     ),
   ];
 }
@@ -79,12 +84,8 @@ function pythonCandidates(): Array<string | undefined> {
 }
 
 const fontforge = requireCommand(
-  findRunnable(fontForgeCandidates('fontforge.exe'), ['-version']),
+  findRunnable(fontForgeCandidates(), ['-version']),
   'FontForge executable not found',
-);
-const ffpython = requireCommand(
-  findRunnable(fontForgeCandidates('ffpython.exe'), ['-V']),
-  'FontForge Python runtime not found',
 );
 const python = requireCommand(
   findRunnable(pythonCandidates(), ['--version']),
@@ -144,7 +145,7 @@ export async function buildFont(): Promise<void> {
     },
   );
   logStage('fixing glyph contour direction');
-  run(ffpython, [fixDirectionScript, rawFontTemporary], { env });
+  run(fontforge, ['-script', fixDirectionScript, rawFontTemporary], { env });
   logStage('normalizing temporary font metadata');
   run(python, [normalizeFontMetadataScript, rawFontTemporary], { env });
   logStage('merging OpenType tables into final TTF');

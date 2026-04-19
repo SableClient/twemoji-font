@@ -85,4 +85,14 @@ describe('fontforge runner', () => {
     expect(normalizeScript).not.toContain('head.created = 0');
     expect(normalizeScript).not.toContain('head.modified = 0');
   });
+
+  it('uses the FontForge executable for FontForge-bound post-processing', () => {
+    const buildFont = readFileSync(new URL('../scripts/build-font.ts', import.meta.url), 'utf8');
+
+    expect(buildFont).toContain(
+      "run(fontforge, ['-script', fixDirectionScript, rawFontTemporary], { env });",
+    );
+    expect(buildFont).not.toContain('FFPYTHON');
+    expect(buildFont).not.toContain('FontForge Python runtime not found');
+  });
 });

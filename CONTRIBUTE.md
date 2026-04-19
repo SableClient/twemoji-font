@@ -8,7 +8,7 @@ Toolchain setup:
 1. Run `vp env install`.
 2. Run `vp install`.
 3. Run `python -m pip install -e .` to install `fonttools[woff]` and `ttfautohint-py`.
-4. Install FontForge so `fontforge` and `ffpython` are available.
+4. Install FontForge so `fontforge` is available.
 5. Optional: install native `ttfautohint` if you do not want to use the Python wheel fallback.
 
 Typical flow:

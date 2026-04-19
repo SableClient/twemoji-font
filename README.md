@@ -40,7 +40,7 @@ Canonical local setup:
 1. `vp env install`
 2. `vp install`
 3. `python -m pip install -e .`
-4. Install [FontForge](https://fontforge.github.io/) so `fontforge` and `ffpython` are on `PATH`, or set `FONTFORGE` and `FFPYTHON`.
+4. Install [FontForge](https://fontforge.github.io/) so `fontforge` is on `PATH`, or set `FONTFORGE`.
 5. Optional: install native `ttfautohint` or set `TTFAUTOHINT` if you do not want to use the Python wheel fallback.
 
 `python -m pip install -e .` installs `fonttools[woff]` and `ttfautohint-py`. The owned runner still requires native FontForge for raw TTF generation, then uses either `ttfautohint` on `PATH` or `python -m ttfautohint` for hinting.
