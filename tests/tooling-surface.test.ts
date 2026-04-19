@@ -13,6 +13,7 @@ describe('tooling surface', () => {
     expect(pkg.scripts).toMatchObject({
       'build:font': 'node scripts/build-font.ts',
       'build:package': 'node scripts/package/build-package.ts',
+      'build:release-assets': 'node scripts/package/build-release-assets.ts',
       build: 'vp run build:font && vp run build:package',
       typecheck: 'tsc -p tsconfig.json',
       smoke: 'node scripts/package/smoke-test-package.ts',

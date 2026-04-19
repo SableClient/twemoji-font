@@ -16,8 +16,8 @@ limitations under the License.
 
 ## License for the Visual Design
 
-The Emoji art in the pinned upstream Twemoji SVG source snapshot comes from [Twemoji](https://twitter.github.io/twemoji),
-and is used and redistributed under the CC-BY-4.0 [license terms](https://github.com/twitter/twemoji#license)
+The Emoji art in the pinned upstream Twemoji SVG source snapshot comes from [Twemoji](https://github.com/jdecked/twemoji),
+and is used and redistributed under the CC-BY-4.0 [license terms](https://github.com/jdecked/twemoji#license)
 offered by the Twemoji project.
 
 ### Creative Commons Attribution 4.0 International (CC BY 4.0)

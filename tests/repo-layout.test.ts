@@ -23,6 +23,9 @@ describe('repo script layout', () => {
     expect(existsSync(new URL('../scripts/layerize/normalize-svg.ts', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../scripts/layerize/layerize-svg.ts', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../scripts/package/build-package.ts', import.meta.url))).toBe(true);
+    expect(existsSync(new URL('../scripts/package/build-release-assets.ts', import.meta.url))).toBe(
+      true,
+    );
     expect(existsSync(new URL('../scripts/package/smoke-test-package.ts', import.meta.url))).toBe(
       true,
     );
@@ -124,6 +127,7 @@ describe('repo script layout', () => {
   it('documents the owned font toolchain and keeps covered typescript files free of ts-check pragmas', () => {
     const readme = readFileSync(new URL('../README.md', import.meta.url), 'utf8');
     const contribute = readFileSync(new URL('../CONTRIBUTE.md', import.meta.url), 'utf8');
+    const license = readFileSync(new URL('../LICENSE.md', import.meta.url), 'utf8');
     const pyproject = readFileSync(new URL('../pyproject.toml', import.meta.url), 'utf8');
     const coveredFiles = [
       '../scripts/package/build-package.ts',
@@ -164,6 +168,9 @@ describe('repo script layout', () => {
     expect(contribute).toContain('knope document-change');
     expect(contribute).toContain('.changeset');
     expect(contribute).not.toContain('twe-svg.zip');
+    expect(license).toContain('https://github.com/jdecked/twemoji');
+    expect(license).not.toContain('https://twitter.github.io/twemoji');
+    expect(license).not.toContain('https://github.com/twitter/twemoji#license');
 
     for (const file of coveredFiles) {
       expect(readFileSync(new URL(file, import.meta.url), 'utf8')).not.toContain('// @ts-check');

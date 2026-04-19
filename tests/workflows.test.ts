@@ -13,6 +13,7 @@ const releaseWorkflow = readFileSync(
   new URL('../.github/workflows/release.yml', import.meta.url),
   'utf8',
 );
+const knopeConfig = readFileSync(new URL('../knope.toml', import.meta.url), 'utf8');
 const pyproject = readFileSync(new URL('../pyproject.toml', import.meta.url), 'utf8');
 
 describe('workflow configuration', () => {
@@ -51,7 +52,10 @@ describe('workflow configuration', () => {
     expect(prepareReleaseWorkflow).toContain('--override-version 1.0.0');
     expect(prepareReleaseWorkflow).toContain('id: prepare-release-args');
     expect(prepareReleaseWorkflow).toContain(
-      'knope prepare-release ${{ steps.prepare-release-args.outputs.args }}',
+      'run: knope prepare-release ${STEPS_PREPARE_RELEASE_ARGS_OUTPUTS_ARGS}',
+    );
+    expect(prepareReleaseWorkflow).toContain(
+      'STEPS_PREPARE_RELEASE_ARGS_OUTPUTS_ARGS: ${{ steps.prepare-release-args.outputs.args }}',
     );
     expect(prepareReleaseWorkflow).toContain('pull-requests: write');
     expect(prepareReleaseWorkflow).toContain('contents: write');
@@ -62,11 +66,13 @@ describe('workflow configuration', () => {
     expect(releaseWorkflow).toContain('pull_request:');
     expect(releaseWorkflow).toContain('types: [closed]');
     expect(releaseWorkflow).toContain("github.head_ref == 'release'");
+    expect(releaseWorkflow).toContain('vp run build:release-assets');
     expect(releaseWorkflow).toContain('knope-dev/action@');
     expect(releaseWorkflow).toContain('knope release --verbose');
     expect(releaseWorkflow).toContain('npm publish --provenance --access public');
     expect(releaseWorkflow).toContain('NODE_AUTH_TOKEN: ${{ secrets.NPM_TOKEN }}');
     expect(releaseWorkflow).toContain('id-token: write');
+    expect(knopeConfig).toContain('assets = "build/*.zip"');
   });
 
   it('writes a Knope change file when automating upstream Twemoji refreshes', () => {

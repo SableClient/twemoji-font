@@ -1,6 +1,7 @@
 [package]
 versioned_files = ["package.json"]
 changelog = "CHANGELOG.md"
+assets = "build/*.zip"
 extra_changelog_sections = [
   { name = "Documentation", types = [
     "docs",

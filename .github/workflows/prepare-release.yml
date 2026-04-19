@@ -44,6 +44,7 @@ jobs:
           fi
 
       - name: Prepare Release
-        run: knope prepare-release ${{ steps.prepare-release-args.outputs.args }}
+        run: knope prepare-release ${STEPS_PREPARE_RELEASE_ARGS_OUTPUTS_ARGS}
         env:
           GITHUB_TOKEN: ${{ steps.generate-token.outputs.token }}
+          STEPS_PREPARE_RELEASE_ARGS_OUTPUTS_ARGS: ${{ steps.prepare-release-args.outputs.args }}

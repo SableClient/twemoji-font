@@ -34,6 +34,9 @@ importers:
       '@types/xml2js':
         specifier: ^0.4.14
         version: 0.4.14
+      '@types/yazl':
+        specifier: ^3.3.1
+        version: 3.3.1
       '@voidzero-dev/vite-plus-core':
         specifier: ^0.1.18
         version: 0.1.18(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0)(typescript@6.0.2)
@@ -49,6 +52,9 @@ importers:
       vitest:
         specifier: npm:@voidzero-dev/vite-plus-test@^0.1.18
         version: '@voidzero-dev/vite-plus-test@0.1.18(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0)(typescript@6.0.2)(vite@8.0.8(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0))'
+      yazl:
+        specifier: ^3.3.1
+        version: 3.3.1
 
 packages:
 
@@ -626,6 +632,9 @@ packages:
   '@types/xml2js@0.4.14':
     resolution: {integrity: sha512-4YnrRemBShWRO2QjvUin8ESA41rH+9nQGLUGZV/1IDhi3SL9OhdpNC/MrulTWuptXKwhx/aDxE7toV0f/ypIXQ==}
 
+  '@types/yazl@3.3.1':
+    resolution: {integrity: sha512-DIWfCKpsTp6hE5BDBHV3+fIL/bLUF9Bv13iDrWnMlmhQpH67buNvI291ZauQ1xcccxK3FqQ9honnXpq4R8NMuQ==}
+
   '@voidzero-dev/vite-plus-core@0.1.18':
     resolution: {integrity: sha512-3PmXOL26yHzlw8ET9SwXCmglGzUYq2fOTYf2t0mxvVIs7ua3bnf6tOnmR+6YX5k1Ez26B0ooYzx+znc8k+CAMw==}
     engines: {node: ^20.19.0 || >=22.12.0}
@@ -778,6 +787,10 @@ packages:
 
   boolbase@1.0.0:
     resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
+
+  buffer-crc32@1.0.0:
+    resolution: {integrity: sha512-Db1SbgBS/fg/392AblrMJk97KggmvYhr4pB5ZIMTWtaivCPMWLkmb7m21cJvpvgK+J3nsU2CmmixNBZx4vFj/w==}
+    engines: {node: '>=8.0.0'}
 
   commander@11.1.0:
     resolution: {integrity: sha512-yPVavfyCcRhmorC7rWlkHn15b4wDVgVmBA7kV4QVBsF7kv/9TKJAbAXVTxvTnwP8HHKjRCJDClKbciiYS7p0DQ==}
@@ -1172,6 +1185,9 @@ packages:
     resolution: {integrity: sha512-yMqGBqtXyeN1e3TGYvgNgDVZ3j84W4cwkOXQswghol6APgZWaff9lnbvN7MHYJOiXsvGPXtjTYJEiC9J2wv9Eg==}
     engines: {node: '>=8.0'}
 
+  yazl@3.3.1:
+    resolution: {integrity: sha512-BbETDVWG+VcMUle37k5Fqp//7SDOK2/1+T7X8TD96M3D9G8jK5VLUdQVdVjGi8im7FGkazX7kk5hkU8X4L5Bng==}
+
 snapshots:
 
   '@emnapi/core@1.9.2':
@@ -1490,6 +1506,10 @@ snapshots:
     dependencies:
       '@types/node': 24.12.2
 
+  '@types/yazl@3.3.1':
+    dependencies:
+      '@types/node': 24.12.2
+
   '@voidzero-dev/vite-plus-core@0.1.18(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0)(typescript@6.0.2)':
     dependencies:
       '@oxc-project/runtime': 0.124.0
@@ -1571,6 +1591,8 @@ snapshots:
   bluebird@3.7.2: {}
 
   boolbase@1.0.0: {}
+
+  buffer-crc32@1.0.0: {}
 
   commander@11.1.0: {}
 
@@ -2005,3 +2027,7 @@ snapshots:
   xmlbuilder@11.0.1: {}
 
   xmlbuilder@15.1.1: {}
+
+  yazl@3.3.1:
+    dependencies:
+      buffer-crc32: 1.0.0

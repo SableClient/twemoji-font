@@ -49,6 +49,7 @@
   "scripts": {
     "build:font": "node scripts/build-font.ts",
     "build:package": "node scripts/package/build-package.ts",
+    "build:release-assets": "node scripts/package/build-release-assets.ts",
     "build": "vp run build:font && vp run build:package",
     "typecheck": "tsc -p tsconfig.json",
     "smoke": "node scripts/package/smoke-test-package.ts",
@@ -71,11 +72,13 @@
     "@types/node": "^24.1.0",
     "@types/unzipper": "^0.10.11",
     "@types/xml2js": "^0.4.14",
+    "@types/yazl": "^3.3.1",
     "@voidzero-dev/vite-plus-core": "^0.1.18",
     "svgo": "^4.0.1",
     "typescript": "^6.0.2",
     "vite-plus": "^0.1.18",
-    "vitest": "^4.1.4"
+    "vitest": "^4.1.4",
+    "yazl": "^3.3.1"
   },
   "engines": {
     "node": "24.14.1"

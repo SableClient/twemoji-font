@@ -26,6 +26,6 @@ Release automation:
 
 1. Merge changes with a `.changeset` entry into `master`.
 2. `.github/workflows/prepare-release.yml` opens or updates the release PR.
-3. Merging the release PR runs `.github/workflows/release.yml`, which tags the release, creates the GitHub release, and publishes to npm.
+3. Merging the release PR runs `.github/workflows/release.yml`, which tags the release, creates the GitHub release, uploads a release zip with the `ttf` and `woff2` files, and publishes to npm.
 
-The built font lands in `build/Twemoji Mozilla.ttf`. The publishable package files land in `dist/`.
+The built font lands in `build/Twemoji Mozilla.ttf`. The publishable package files land in `dist/`. The GitHub release asset archive lands in `build/twemoji-font-<version>.zip`.
