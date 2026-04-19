@@ -10,5 +10,6 @@ export default defineConfig({
   fmt: {
     semi: true,
     singleQuote: true,
+    ignorePatterns: ['package.json', 'CHANGELOG.md'],
   },
 });
