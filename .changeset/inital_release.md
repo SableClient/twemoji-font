@@ -1,5 +1,0 @@
----
-default: note
----
-
-# Inital release
