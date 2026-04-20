@@ -9,6 +9,10 @@ const prepareReleaseWorkflow = readFileSync(
   new URL('../.github/workflows/prepare-release.yml', import.meta.url),
   'utf8',
 );
+const qualityWorkflow = readFileSync(
+  new URL('../.github/workflows/quality-checks.yml', import.meta.url),
+  'utf8',
+);
 const releaseWorkflow = readFileSync(
   new URL('../.github/workflows/release.yml', import.meta.url),
   'utf8',
@@ -18,7 +22,7 @@ const pyproject = readFileSync(new URL('../pyproject.toml', import.meta.url), 'u
 
 describe('workflow configuration', () => {
   it('uses setup-vp for bootstrap and vp script invocations for repo commands', () => {
-    for (const workflow of [checkUpstreamWorkflow, releaseWorkflow]) {
+    for (const workflow of [checkUpstreamWorkflow, qualityWorkflow, releaseWorkflow]) {
       expect(workflow).toContain('voidzero-dev/setup-vp@');
       expect(workflow).toContain("node-version-file: '.node-version'");
       expect(workflow).toContain('cache: true');
@@ -30,12 +34,23 @@ describe('workflow configuration', () => {
       expect(workflow).not.toContain('sudo apt-get install -y fontforge ttfautohint');
       expect(workflow).toContain('python -m pip install -e .');
       expect(workflow).toContain('vp install --frozen-lockfile');
-      expect(workflow).toContain('vp run check');
-      expect(workflow).toContain('vp run test');
-      expect(workflow).toContain('vp run verify');
       expect(workflow).not.toContain('pnpm install --frozen-lockfile');
     }
 
+    expect(checkUpstreamWorkflow).toContain('run: vp run verify');
+    expect(qualityWorkflow).toContain('run: vp run check');
+    expect(qualityWorkflow).toContain('run: vp run test');
+    expect(qualityWorkflow).toContain('run: vp run build');
+    expect(qualityWorkflow).toContain('run: vp run verify:ci');
+    expect(releaseWorkflow).not.toContain('run: vp run check\n');
+    expect(releaseWorkflow).not.toContain('run: vp run test\n');
+    expect(releaseWorkflow).not.toContain('run: vp run verify\n');
+    expect(releaseWorkflow).not.toContain('run: vp run verify:ci\n');
+    expect(releaseWorkflow).not.toContain('run: vp run check:repeatability\n');
+    expect(releaseWorkflow).not.toContain('vp run typecheck');
+    expect(releaseWorkflow).not.toContain('vp run smoke');
+    expect(releaseWorkflow).toContain('vp run build');
+    expect(qualityWorkflow).not.toContain('actions/setup-node@');
     expect(checkUpstreamWorkflow).not.toContain('actions/setup-node@');
     expect(releaseWorkflow).toContain('actions/setup-node@');
     expect(releaseWorkflow).toContain("registry-url: 'https://registry.npmjs.org'");
@@ -62,11 +77,28 @@ describe('workflow configuration', () => {
     expect(prepareReleaseWorkflow).toContain('fregante/setup-git-user@');
     expect(prepareReleaseWorkflow).not.toContain('npm publish');
 
+    expect(qualityWorkflow).toContain('name: Quality Checks');
+    expect(qualityWorkflow).toContain('push:');
+    expect(qualityWorkflow).toContain('pull_request:');
+    expect(qualityWorkflow).toContain('vp run check');
+    expect(qualityWorkflow).toContain('vp run test');
+    expect(qualityWorkflow).toContain('vp run build');
+    expect(qualityWorkflow).toContain('vp run verify:ci');
+    expect(qualityWorkflow).not.toContain('npm publish');
+
     expect(releaseWorkflow).toContain('name: Release');
     expect(releaseWorkflow).toContain('pull_request:');
     expect(releaseWorkflow).toContain('types: [closed]');
     expect(releaseWorkflow).toContain("github.head_ref == 'release'");
+    expect(releaseWorkflow).toContain('vp run build');
     expect(releaseWorkflow).toContain('vp run build:release-assets');
+    expect(releaseWorkflow).not.toContain('run: vp run verify\n');
+    expect(releaseWorkflow).not.toContain('run: vp run check\n');
+    expect(releaseWorkflow).not.toContain('run: vp run test\n');
+    expect(releaseWorkflow).not.toContain('run: vp run verify:ci\n');
+    expect(releaseWorkflow).not.toContain('run: vp run check:repeatability\n');
+    expect(releaseWorkflow).not.toContain('vp run typecheck');
+    expect(releaseWorkflow).not.toContain('vp run smoke');
     expect(releaseWorkflow).toContain('knope-dev/action@');
     expect(releaseWorkflow).toContain('knope release --verbose');
     expect(releaseWorkflow).toContain('npm publish --provenance --access public');

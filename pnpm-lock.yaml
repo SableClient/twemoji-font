@@ -11,19 +11,6 @@ overrides:
 importers:
 
   .:
-    dependencies:
-      emojibase-data:
-        specifier: ^17.0.0
-        version: 17.0.0(emojibase@17.0.0)
-      unzipper:
-        specifier: ^0.12.3
-        version: 0.12.3
-      xml2js:
-        specifier: ^0.6.2
-        version: 0.6.2
-      xmlbuilder:
-        specifier: ^15.1.1
-        version: 15.1.1
     devDependencies:
       '@types/node':
         specifier: ^24.1.0
@@ -40,18 +27,30 @@ importers:
       '@voidzero-dev/vite-plus-core':
         specifier: ^0.1.18
         version: 0.1.18(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0)(typescript@6.0.2)
+      emojibase-data:
+        specifier: ^17.0.0
+        version: 17.0.0(emojibase@17.0.0)
       svgo:
         specifier: ^4.0.1
         version: 4.0.1
       typescript:
         specifier: ^6.0.2
         version: 6.0.2
+      unzipper:
+        specifier: ^0.12.3
+        version: 0.12.3
       vite-plus:
         specifier: ^0.1.18
         version: 0.1.18(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0)(typescript@6.0.2)(vite@8.0.8(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0))
       vitest:
         specifier: npm:@voidzero-dev/vite-plus-test@^0.1.18
         version: '@voidzero-dev/vite-plus-test@0.1.18(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0)(typescript@6.0.2)(vite@8.0.8(@types/node@24.12.2)(esbuild@0.27.7)(tsx@4.21.0))'
+      xml2js:
+        specifier: ^0.6.2
+        version: 0.6.2
+      xmlbuilder:
+        specifier: ^15.1.1
+        version: 15.1.1
       yazl:
         specifier: ^3.3.1
         version: 3.3.1

@@ -60,13 +60,8 @@
     "lint": "vp lint",
     "fmt": "vp fmt",
     "check": "vp check",
-    "verify": "vp run build && vp run test && vp run typecheck && vp run smoke && vp run check:repeatability"
-  },
-  "dependencies": {
-    "emojibase-data": "^17.0.0",
-    "unzipper": "^0.12.3",
-    "xml2js": "^0.6.2",
-    "xmlbuilder": "^15.1.1"
+    "verify": "vp run build && vp run test && vp run typecheck && vp run smoke && vp run check:repeatability",
+    "verify:ci": "vp run typecheck && vp run smoke"
   },
   "devDependencies": {
     "@types/node": "^24.1.0",
@@ -74,10 +69,14 @@
     "@types/xml2js": "^0.4.14",
     "@types/yazl": "^3.3.1",
     "@voidzero-dev/vite-plus-core": "^0.1.18",
+    "emojibase-data": "^17.0.0",
     "svgo": "^4.0.1",
     "typescript": "^6.0.2",
+    "unzipper": "^0.12.3",
     "vite-plus": "^0.1.18",
     "vitest": "^4.1.4",
+    "xml2js": "^0.6.2",
+    "xmlbuilder": "^15.1.1",
     "yazl": "^3.3.1"
   },
   "engines": {

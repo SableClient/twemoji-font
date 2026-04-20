@@ -26,8 +26,9 @@ This raw asset import is intended for bundlers that support `?url` asset imports
 
 1. Add a change file with `knope document-change`, or let the upstream update workflow create one for Twemoji refresh PRs.
 2. Merge the change into `master`.
-3. CI opens a release PR from `release` with the version bump and changelog updates.
-4. Merging that release PR tags the commit, creates the GitHub release, uploads a `build/*.zip` archive with `ttf` and `woff2` font files, and publishes the package to npm with the repository secret `NPM_TOKEN`.
+3. `.github/workflows/quality-checks.yml` runs repo checks, tests, and package validation on pushes and pull requests.
+4. CI opens a release PR from `release` with the version bump and changelog updates.
+5. Merging that release PR tags the commit, creates the GitHub release, uploads a `build/*.zip` archive with `ttf` and `woff2` font files, and publishes the package to npm with the repository secret `NPM_TOKEN`.
 
 ## Maintainer setup
 
@@ -98,11 +99,11 @@ That command updates `package.json` `twemoji` metadata and warms `.cache/twemoji
 Repin and update workflow actions with:
 
 ```bash
-pinact run -u .github/workflows/check-upstream.yml .github/workflows/prepare-release.yml .github/workflows/release.yml
+pinact run -u .github/workflows/check-upstream.yml .github/workflows/quality-checks.yml .github/workflows/prepare-release.yml .github/workflows/release.yml
 ```
 
 Audit workflow security with:
 
 ```bash
-zizmor .github/workflows/check-upstream.yml .github/workflows/prepare-release.yml .github/workflows/release.yml
+zizmor .github/workflows/check-upstream.yml .github/workflows/quality-checks.yml .github/workflows/prepare-release.yml .github/workflows/release.yml
 ```

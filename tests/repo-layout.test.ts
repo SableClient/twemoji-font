@@ -44,6 +44,9 @@ describe('repo script layout', () => {
     expect(existsSync(new URL('../.github/workflows/prepare-release.yml', import.meta.url))).toBe(
       true,
     );
+    expect(existsSync(new URL('../.github/workflows/quality-checks.yml', import.meta.url))).toBe(
+      true,
+    );
     expect(existsSync(new URL('../.github/workflows/release.yml', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../.github/workflows/publish.yml', import.meta.url))).toBe(false);
     expect(existsSync(new URL('../src/tools', import.meta.url))).toBe(false);

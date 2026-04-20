@@ -20,6 +20,7 @@ describe('tooling surface', () => {
       'check:upstream': 'node scripts/upstream/check-upstream.ts',
       'prepare:upstream': 'node scripts/upstream/publish-prepare.ts',
       'check:repeatability': 'node scripts/verify/check-build-repeatability.ts',
+      'verify:ci': 'vp run typecheck && vp run smoke',
       test: 'vp test run',
       lint: 'vp lint',
       fmt: 'vp fmt',
@@ -32,6 +33,8 @@ describe('tooling surface', () => {
     expect(lockfile).toContain('vitest: npm:@voidzero-dev/vite-plus-test@^0.1.18');
     expect(viteConfig).toContain("import { defineConfig } from 'vite-plus';");
     expect(viteConfig).toMatch(/test:\s*\{\s*include:\s*\['tests\/\*\*\/\*\.test\.ts'\],?\s*\}/);
+    expect(viteConfig).toContain('typeAware: true');
+    expect(viteConfig).toContain('typeCheck: true');
     expect(viteConfig).not.toContain('run: {');
     expect(viteConfig).not.toContain('tasks: false');
     expect(existsSync(new URL('../tsconfig.json', import.meta.url))).toBe(true);

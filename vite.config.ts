@@ -5,6 +5,10 @@ export default defineConfig({
     include: ['tests/**/*.test.ts'],
   },
   lint: {
+    options: {
+      typeAware: true,
+      typeCheck: true,
+    },
     ignorePatterns: ['build/**', 'dist/**'],
   },
   fmt: {

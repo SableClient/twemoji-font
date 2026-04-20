@@ -1,0 +1,50 @@
+name: Quality Checks
+
+on:
+  push:
+  pull_request:
+
+permissions: {}
+
+jobs:
+  quality:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@de0fac2e4500dabe0009e67214ff5f5447ce83dd # v6.0.2
+        with:
+          fetch-depth: 0
+          persist-credentials: true
+
+      - name: Setup Vite+
+        uses: voidzero-dev/setup-vp@8ecb39174989ce55af90f45cf55b02738599831d # v1.6.0
+        with:
+          node-version-file: '.node-version'
+          cache: true
+
+      - name: Setup Python
+        uses: actions/setup-python@a309ff8b426b58ec0e2a45f0f869d46889d02405 # v6.2.0
+        with:
+          python-version-file: 'pyproject.toml'
+
+      - name: Install font toolchain
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y fontforge
+
+      - name: Install dependencies
+        run: vp install --frozen-lockfile
+
+      - name: Install Python helpers
+        run: python -m pip install -e .
+
+      - name: Check repo
+        run: vp run check
+
+      - name: Run tests
+        run: vp run test
+
+      - name: Build package
+        run: vp run build
+
+      - name: Verify CI package
+        run: vp run verify:ci

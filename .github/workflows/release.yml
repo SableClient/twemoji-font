@@ -42,14 +42,8 @@ jobs:
       - name: Install Python helpers
         run: python -m pip install -e .
 
-      - name: Check repo
-        run: vp run check
-
-      - name: Run tests
-        run: vp run test
-
-      - name: Verify package
-        run: vp run verify
+      - name: Build package
+        run: vp run build
 
       - name: Build release asset archive
         run: vp run build:release-assets
