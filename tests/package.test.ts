@@ -27,6 +27,7 @@ describe('package output', () => {
       default: './dist/files/*.woff2',
     });
     expect(pkg.exports['./package.json']).toBe('./package.json');
+    expect('engines' in pkg).toBe(false);
     expect('./font' in pkg.exports).toBe(false);
     expect('./metadata' in pkg.exports).toBe(false);
     expect(pkg.twemoji).toMatchObject({
