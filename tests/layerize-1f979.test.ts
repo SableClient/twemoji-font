@@ -3,6 +3,7 @@ import { tmpdir } from 'node:os';
 import { join, resolve } from 'node:path';
 import { execFileSync } from 'node:child_process';
 import { afterEach, describe, expect, it } from 'vite-plus/test';
+import { readUpstreamSvgFixture } from './fixtures/upstream-svg.ts';
 
 const tempDirs: string[] = [];
 
@@ -34,13 +35,7 @@ describe('layerize 1f979 compound path handling', () => {
     mkdirSync(extrasDir, { recursive: true });
 
     writeFileSync(join(extrasDir, 'ligatures.json'), '[]\n');
-    writeFileSync(
-      join(sourceDir, '1f979.svg'),
-      readFileSync(
-        resolve('.cache/twemoji/40c2213f8f9bc53b1188fdae325a63a82ffb5bec/svg/1f979.svg'),
-        'utf8',
-      ),
-    );
+    writeFileSync(join(sourceDir, '1f979.svg'), readUpstreamSvgFixture('1f979'));
 
     execFileSync(
       process.execPath,
