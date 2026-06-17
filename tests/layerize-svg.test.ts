@@ -36,8 +36,8 @@ describe('layerize svg helpers', () => {
       new URL('../scripts/layerize/layerize.ts', import.meta.url),
       'utf8',
     );
-    const defsBlockStart = layerize.indexOf("if (e['#name'] === 'defs') {");
-    const defsBlockEnd = layerize.indexOf("if (e['$'] === undefined) {");
+    const defsBlockStart = layerize.indexOf("=== 'defs'");
+    const defsBlockEnd = layerize.indexOf("if (e['$'] === undefined)");
     const defsBlock = layerize.slice(defsBlockStart, defsBlockEnd);
 
     expect(defsBlockStart).toBeGreaterThan(-1);

@@ -5,11 +5,19 @@ Repo-owned build helpers live under `scripts/`.
 
 Toolchain setup:
 
-1. Run `vp env install`.
-2. Run `vp install`.
-3. Run `python -m pip install -e .` to install `fonttools[woff]` and `ttfautohint-py`.
-4. Install FontForge so `fontforge` is available.
-5. Optional: install native `ttfautohint` if you do not want to use the Python wheel fallback.
+1. Run `pnpm install`.
+2. Install Python **3.11+** and install the font helpers with the interpreter the build will use:
+   ```bash
+   py -3.11 -m pip install -e .
+   ```
+   On Windows, the build probes `py` before `python`. If you use Miniconda or another Python, set `PYTHON` to that executable before building.
+3. Install [FontForge](https://fontforge.github.io/). On Windows, if `fontforge` is not on `PATH`, set:
+   ```powershell
+   $env:FONTFORGE = "C:\Program Files\FontForgeBuilds\bin\fontforge.exe"
+   ```
+4. Optional: install native `ttfautohint` if you do not want to use the Python wheel fallback.
+
+If `vp` is not recognized, use `pnpm run` instead (for example `pnpm run build`).
 
 Typical flow:
 

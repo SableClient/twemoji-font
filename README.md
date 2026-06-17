@@ -14,6 +14,14 @@ pnpm add @sableclient/twemoji-font
 import '@sableclient/twemoji-font';
 ```
 
+Place `Twemoji` before your text fonts so emoji codepoints resolve to the COLR font:
+
+```css
+font-family: Twemoji, var(--font-secondary), sans-serif;
+```
+
+The published `@font-face` includes a `unicode-range` covering common emoji blocks.
+
 ## Use the raw asset in bundlers
 
 ```js
@@ -38,11 +46,12 @@ Use `vp` as the command front-end; repo commands are defined in `package.json`.
 
 Canonical local setup:
 
-1. `vp env install`
-2. `vp install`
-3. `python -m pip install -e .`
-4. Install [FontForge](https://fontforge.github.io/) so `fontforge` is on `PATH`, or set `FONTFORGE`.
-5. Optional: install native `ttfautohint` or set `TTFAUTOHINT` if you do not want to use the Python wheel fallback.
+1. `pnpm install`
+2. `py -3.11 -m pip install -e .` (or `python -m pip install -e .` if that is the interpreter your build uses)
+3. Install [FontForge](https://fontforge.github.io/) so `fontforge` is on `PATH`, or set `FONTFORGE` on Windows
+4. Optional: install native `ttfautohint` or set `TTFAUTOHINT` if you do not want to use the Python wheel fallback
+
+Use `pnpm run` for repo commands if `vp` is not on your `PATH`.
 
 `python -m pip install -e .` installs `fonttools[woff]` and `ttfautohint-py`. The owned runner still requires native FontForge for raw TTF generation, then uses either `ttfautohint` on `PATH` or `python -m ttfautohint` for hinting.
 

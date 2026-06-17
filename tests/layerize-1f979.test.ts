@@ -21,8 +21,8 @@ afterEach(() => {
   }
 });
 
-describe('layerize svg normalization', () => {
-  it('merges overlapping same-color paths into separate COLR layers', () => {
+describe('layerize 1f979 compound path handling', () => {
+  it('keeps the left eye sclera in its own COLR layer', () => {
     const tempDir = makeTempDir();
     const sourceDir = join(tempDir, 'source');
     const overridesDir = join(tempDir, 'overrides');
@@ -35,13 +35,11 @@ describe('layerize svg normalization', () => {
 
     writeFileSync(join(extrasDir, 'ligatures.json'), '[]\n');
     writeFileSync(
-      join(sourceDir, '1f600.svg'),
-      [
-        '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">',
-        '  <path fill="#f00" d=" M 2 2 H 22 V 22 H 2 Z"/>',
-        '  <path fill="#f00" d="M 12 12 H 32 V 32 H 12 Z"/>',
-        '</svg>',
-      ].join('\n'),
+      join(sourceDir, '1f979.svg'),
+      readFileSync(
+        resolve('.cache/twemoji/40c2213f8f9bc53b1188fdae325a63a82ffb5bec/svg/1f979.svg'),
+        'utf8',
+      ),
     );
 
     execFileSync(
@@ -62,6 +60,14 @@ describe('layerize svg normalization', () => {
       string[]
     >;
 
-    expect(layerInfo['1f600']).toHaveLength(2);
+    const layerSvgs = layerInfo['1f979'].map((layerName) =>
+      readFileSync(join(buildDir, 'glyphs', `${layerName}.svg`), 'utf8'),
+    );
+    const pathData = layerSvgs.flatMap((svg) =>
+      [...svg.matchAll(/\sd="([^"]+)"/g)].map((match) => match[1]),
+    );
+
+    expect(pathData.some((d) => /M11\.5 23a5\.5/i.test(d))).toBe(true);
+    expect(pathData.every((d) => !(d.includes('M24.337') && /M11\.5 23a5\.5/i.test(d)))).toBe(true);
   });
 });

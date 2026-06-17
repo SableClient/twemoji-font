@@ -21,8 +21,8 @@ afterEach(() => {
   }
 });
 
-describe('layerize svg normalization', () => {
-  it('merges overlapping same-color paths into separate COLR layers', () => {
+describe('layerize pipeline hardening', () => {
+  it('records dropped thin strokes without failing the build', () => {
     const tempDir = makeTempDir();
     const sourceDir = join(tempDir, 'source');
     const overridesDir = join(tempDir, 'overrides');
@@ -38,8 +38,7 @@ describe('layerize svg normalization', () => {
       join(sourceDir, '1f600.svg'),
       [
         '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 36 36">',
-        '  <path fill="#f00" d=" M 2 2 H 22 V 22 H 2 Z"/>',
-        '  <path fill="#f00" d="M 12 12 H 32 V 32 H 12 Z"/>',
+        '  <path fill="#f00" stroke="#000" stroke-width="0.1" d="M2 2h30v30H2z"/>',
         '</svg>',
       ].join('\n'),
     );
@@ -57,11 +56,10 @@ describe('layerize svg normalization', () => {
       { cwd: resolve('.'), stdio: 'pipe' },
     );
 
-    const layerInfo = JSON.parse(readFileSync(join(buildDir, 'layer_info.json'), 'utf8')) as Record<
-      string,
-      string[]
-    >;
+    const dropped = JSON.parse(
+      readFileSync(join(buildDir, 'dropped-strokes.json'), 'utf8'),
+    ) as Array<{ baseName: string }>;
 
-    expect(layerInfo['1f600']).toHaveLength(2);
+    expect(dropped.some((entry) => entry.baseName === '1f600')).toBe(true);
   });
 });

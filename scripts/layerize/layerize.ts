@@ -18,6 +18,11 @@ import {
   sortPalette,
 } from './layerize-order.ts';
 import { normalizeSvgForLayerize } from './normalize-svg.ts';
+import {
+  ensureClosedPathForFontForge,
+  normalizeLeadingMoveto,
+  splitCompoundPathElement,
+} from './path-utils.ts';
 
 type SvgAttributes = NonNullable<SvgNode['$']>;
 type Point = [number, number];
@@ -92,6 +97,8 @@ let colorToId: ColorIdMap = {};
 
 let codepoints: string[] = [];
 let uvsMappings: EmojiVariationSequenceMapping[] = [];
+let zeroLayerGlyphs: string[] = [];
+let droppedStrokes: Array<{ baseName: string; stroke: string; strokeWidth: string }> = [];
 
 function cloneSvgNode(node: SvgNode): SvgNode {
   return JSON.parse(JSON.stringify(node)) as SvgNode;
@@ -290,19 +297,26 @@ function decodePath(d: string): Point[] {
         result.push([x, y]);
       }
     } else if (op === 'A') {
-      // we don't fully handle arc, just grab the endpoint
       while ((coords = d.match('^' + c + c + c + c + c + c + c))) {
         d = d.substr(coords[0].length);
+        var rx = Math.abs(Number(coords[1]));
+        var ry = Math.abs(Number(coords[2]));
         x = Number(coords[6]);
         y = Number(coords[7]);
         result.push([x, y]);
+        result.push([x - rx, y - ry]);
+        result.push([x + rx, y + ry]);
       }
     } else if (op === 'a') {
       while ((coords = d.match('^' + c + c + c + c + c + c + c))) {
         d = d.substr(coords[0].length);
+        var arx = Math.abs(Number(coords[1]));
+        var ary = Math.abs(Number(coords[2]));
         x += Number(coords[6]);
         y += Number(coords[7]);
         result.push([x, y]);
+        result.push([x - arx, y - ary]);
+        result.push([x + arx, y + ary]);
       }
     } else if ((op === 'Z' || op === 'z') && segStart !== undefined) {
       x = segStart[0];
@@ -398,6 +412,21 @@ function addOrMerge(paths: LayerPathGroup[], p: SvgNode, color: string): void {
   } else {
     paths.push({ color: color, paths: [p] });
   }
+}
+
+function addCompoundPathBatch(paths: LayerPathGroup[], nodes: SvgNode[], color: string): void {
+  if (nodes.length === 0) {
+    return;
+  }
+
+  if (nodes.some(hasTransform)) {
+    nodes.forEach(function (node) {
+      addOrMerge(paths, node, color);
+    });
+    return;
+  }
+
+  paths.push({ color: color, paths: [...nodes] });
 }
 
 function processFile(fileName: string, data: string | Buffer, withAliases = true): void {
@@ -558,61 +587,93 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
             ]);
           }
         } else {
-          if (!attrs.transform && xform) {
-            attrs.transform = xform;
-          }
-          if (fill !== undefined && fill !== 'none') {
-            var f = cloneSvgNode(e);
-            var fillAttrs = (f.$ ??= {});
-            fillAttrs.stroke = 'none';
-            fillAttrs['stroke-width'] = '0';
-            fillAttrs.fill = '#000';
-            var fillColor = fill;
-            if (opacity !== 1.0) {
-              fillColor = applyOpacity(fill, opacity) ?? fill;
+          const drawableElements = e['#name'] === 'path' ? splitCompoundPathElement(e) : [e];
+          const isCompoundSplit = e['#name'] === 'path' && drawableElements.length > 1;
+          const fillBatch: SvgNode[] = [];
+          let fillColorForBatch: string | undefined;
+          const strokeBatch: SvgNode[] = [];
+          let strokeColorForBatch: string | undefined;
+
+          drawableElements.forEach(function (drawable) {
+            const drawableAttrs = drawable.$ ?? {};
+            if (!drawableAttrs.transform && xform) {
+              drawableAttrs.transform = xform;
+              drawable.$ = drawableAttrs;
             }
-            // Insert a Closepath before any Move commands within the path data,
-            // as fontforge import doesn't handle unclosed paths reliably.
-            if (f['#name'] === 'path') {
-              var d = fillAttrs.d ?? '';
-              d = d.replace(/M/g, 'zM').replace(/m/g, 'zm').replace(/^z/, '').replace(/zz/gi, 'z');
-              if (fillAttrs.d !== d) {
-                fillAttrs.d = d;
+
+            if (fill !== undefined && fill !== 'none') {
+              var f = cloneSvgNode(drawable);
+              var fillAttrs = (f.$ ??= {});
+              fillAttrs.stroke = 'none';
+              fillAttrs['stroke-width'] = '0';
+              fillAttrs.fill = '#000';
+              var fillColor = fill;
+              if (opacity !== 1.0) {
+                fillColor = applyOpacity(fill, opacity) ?? fill;
+              }
+              if (f['#name'] === 'path') {
+                const preparedPath = ensureClosedPathForFontForge(
+                  normalizeLeadingMoveto(fillAttrs.d ?? ''),
+                );
+                if (fillAttrs.d !== preparedPath) {
+                  fillAttrs.d = preparedPath;
+                }
+              }
+              if (isCompoundSplit) {
+                fillBatch.push(f);
+                fillColorForBatch = fillColor;
+              } else {
+                addOrMerge(paths, f, fillColor);
               }
             }
-            addOrMerge(paths, f, fillColor);
-          }
 
-          // fontforge seems to hang on really complex thin strokes
-          // so we arbitrarily discard them for now :(
-          // Also skip stroking the zodiac-sign glyphs to work around
-          // conversion problems with those outlines; we'll just have
-          // slightly thinner symbols (fill only, no stroke)
-          function skipStrokeOnZodiacSign(u: string): boolean {
-            var unicode = parseInt(u, 16);
-            return unicode >= 0x2648 && unicode <= 0x2653;
-          }
-
-          if (stroke !== undefined && stroke !== 'none' && !skipStrokeOnZodiacSign(unicodes[0])) {
-            if (
-              e['#name'] !== 'path' ||
-              Number(strokeWidth) > 0.25 ||
-              ((attrs.d ?? '').length < 500 && Number(strokeWidth) > 0.1)
-            ) {
-              var s = cloneSvgNode(e);
-              var strokeAttrs = (s.$ ??= {});
-              strokeAttrs.fill = 'none';
-              strokeAttrs.stroke = '#000';
-              strokeAttrs['stroke-width'] = strokeWidth;
-              var strokeColor = stroke;
-              if (opacity) {
-                strokeColor = applyOpacity(stroke, opacity) ?? stroke;
-              }
-              addOrMerge(paths, s, strokeColor);
-            } else {
-              //console.log("Skipping stroke in " + baseName + ", color " + stroke + " width " + strokeWidth);
-              //console.log(e['$']);
+            // fontforge seems to hang on really complex thin strokes
+            // so we arbitrarily discard them for now :(
+            // Also skip stroking the zodiac-sign glyphs to work around
+            // conversion problems with those outlines; we'll just have
+            // slightly thinner symbols (fill only, no stroke)
+            function skipStrokeOnZodiacSign(u: string): boolean {
+              var unicode = parseInt(u, 16);
+              return unicode >= 0x2648 && unicode <= 0x2653;
             }
+
+            if (stroke !== undefined && stroke !== 'none' && !skipStrokeOnZodiacSign(unicodes[0])) {
+              const pathData = drawableAttrs.d ?? '';
+              if (
+                drawable['#name'] !== 'path' ||
+                Number(strokeWidth) > 0.25 ||
+                (pathData.length < 500 && Number(strokeWidth) > 0.1)
+              ) {
+                var s = cloneSvgNode(drawable);
+                var strokeAttrs = (s.$ ??= {});
+                strokeAttrs.fill = 'none';
+                strokeAttrs.stroke = '#000';
+                strokeAttrs['stroke-width'] = strokeWidth;
+                var strokeColor = stroke;
+                if (opacity) {
+                  strokeColor = applyOpacity(stroke, opacity) ?? stroke;
+                }
+                if (isCompoundSplit) {
+                  strokeBatch.push(s);
+                  strokeColorForBatch = strokeColor;
+                } else {
+                  addOrMerge(paths, s, strokeColor);
+                }
+              } else {
+                droppedStrokes.push({
+                  baseName,
+                  stroke,
+                  strokeWidth: String(strokeWidth),
+                });
+              }
+            }
+          });
+
+          if (isCompoundSplit && fillBatch.length > 0 && fillColorForBatch !== undefined) {
+            addCompoundPathBatch(paths, fillBatch, fillColorForBatch);
+          }
+          if (isCompoundSplit && strokeBatch.length > 0 && strokeColorForBatch !== undefined) {
+            addCompoundPathBatch(paths, strokeBatch, strokeColorForBatch);
           }
         }
       });
@@ -646,6 +707,10 @@ function processFile(fileName: string, data: string | Buffer, withAliases = true
       }
       layerIndex = layerIndex + 1;
     });
+
+    if (layers.length === 0) {
+      zeroLayerGlyphs.push(baseName);
+    }
 
     const emojiVariationSequence = getEmojiVariationSequenceMapping(unicodes);
 
@@ -905,6 +970,19 @@ async function main() {
       processFile(record.fileName, record.data);
     }
   });
+
+  if (droppedStrokes.length > 0) {
+    logStage(`recorded ${droppedStrokes.length} dropped thin strokes`);
+    fs.writeFileSync(targetDir + '/dropped-strokes.json', JSON.stringify(droppedStrokes, null, 2));
+  }
+
+  if (zeroLayerGlyphs.length > 0) {
+    console.error('### Zero COLR layers for glyphs:');
+    zeroLayerGlyphs.forEach(function (glyph) {
+      console.error(`###   ${glyph}`);
+    });
+    process.exit(1);
+  }
 
   logStage('writing auxiliary font tables');
   generateTTX();

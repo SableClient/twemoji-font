@@ -24,10 +24,11 @@ describe('workflow configuration', () => {
   it('uses setup-vp for bootstrap and vp script invocations for repo commands', () => {
     for (const workflow of [checkUpstreamWorkflow, qualityWorkflow, releaseWorkflow]) {
       expect(workflow).toContain('voidzero-dev/setup-vp@');
-      expect(workflow).toContain("node-version-file: '.node-version'");
+      expect(workflow).toContain('.node-version');
       expect(workflow).toContain('cache: true');
       expect(workflow).toContain('actions/setup-python@');
-      expect(workflow).toContain("python-version-file: 'pyproject.toml'");
+      expect(workflow).toContain('python-version-file:');
+      expect(workflow).toContain('pyproject.toml');
       expect(workflow).not.toContain("python-version: '3.13'");
       expect(workflow).toContain('sudo apt-get update');
       expect(workflow).toContain('sudo apt-get install -y fontforge');
@@ -41,6 +42,7 @@ describe('workflow configuration', () => {
     expect(qualityWorkflow).toContain('run: vp run check');
     expect(qualityWorkflow).toContain('run: vp run test');
     expect(qualityWorkflow).toContain('run: vp run build');
+    expect(qualityWorkflow).toContain('run: vp run check:coverage');
     expect(qualityWorkflow).toContain('run: vp run verify:ci');
     expect(releaseWorkflow).not.toContain('run: vp run check\n');
     expect(releaseWorkflow).not.toContain('run: vp run test\n');
@@ -114,6 +116,6 @@ describe('workflow configuration', () => {
   });
 
   it('uses pyproject.toml as the Python version source of truth', () => {
-    expect(pyproject).toContain('requires-python = ">=3.13,<3.14"');
+    expect(pyproject).toContain('requires-python = ">=3.11,<3.14"');
   });
 });

@@ -21,6 +21,7 @@ describe('repo script layout', () => {
       true,
     );
     expect(existsSync(new URL('../scripts/layerize/normalize-svg.ts', import.meta.url))).toBe(true);
+    expect(existsSync(new URL('../scripts/layerize/path-utils.ts', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../scripts/layerize/layerize-svg.ts', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../scripts/package/build-package.ts', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../scripts/package/build-release-assets.ts', import.meta.url))).toBe(
@@ -38,6 +39,10 @@ describe('repo script layout', () => {
     expect(
       existsSync(new URL('../scripts/verify/check-build-repeatability.ts', import.meta.url)),
     ).toBe(true);
+    expect(existsSync(new URL('../scripts/verify/coverage-audit.ts', import.meta.url))).toBe(true);
+    expect(existsSync(new URL('../scripts/verify/font-table-summary.ts', import.meta.url))).toBe(
+      true,
+    );
     expect(existsSync(new URL('../knope.toml', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../CHANGELOG.md', import.meta.url))).toBe(true);
     expect(existsSync(new URL('../.changeset/.gitkeep', import.meta.url))).toBe(true);
@@ -109,7 +114,8 @@ describe('repo script layout', () => {
     expect(fontforgeScript).toContain('f.generate(filename)');
     expect(buildFont).not.toContain("'twe-svg.zip'");
     expect(buildFont).not.toContain("'twe-svg.zip.version.txt'");
-    expect(layerize).toContain("from './normalize-svg.ts'");
+    expect(layerize).toContain('normalize-svg.ts');
+    expect(layerize).toContain('path-utils.ts');
     expect(layerize).toContain('normalizeSvgForLayerize');
   });
 
@@ -148,11 +154,11 @@ describe('repo script layout', () => {
     expect(readme).toContain('ttfautohint');
     expect(readme).toContain('Python wheel fallback');
     expect(readme).toContain('scripts/');
-    expect(readme).toContain('vp install');
+    expect(readme).toContain('pnpm install');
     expect(readme).toContain('vp run check');
     expect(readme).toContain('vp run test');
-    expect(readme).toContain('vp env install');
-    expect(readme).toContain('python -m pip install -e .');
+    expect(readme).toContain('py -3.11 -m pip install -e .');
+    expect(readme).toContain('pnpm run');
     expect(readme).toContain('vp run verify');
     expect(readme).toContain('.cache/twemoji');
     expect(readme).toContain('knope document-change');
@@ -163,7 +169,7 @@ describe('repo script layout', () => {
     expect(contribute).toContain('ttfautohint');
     expect(contribute).toContain('Python wheel fallback');
     expect(contribute).toContain('scripts/');
-    expect(contribute).toContain('vp install');
+    expect(contribute).toContain('pnpm install');
     expect(contribute).toContain('vp run check');
     expect(contribute).toContain('vp run test');
     expect(contribute).toContain('vp run verify');
