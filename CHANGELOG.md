@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## 1.0.3 (2026-06-17)
+
+### Fixes
+
+- Fix COLR layerize rendering for compound SVG paths, ellipse conversion, and layer stacking.
+
 ## 1.0.2 (2026-04-21)
 
 ### Fixes
