@@ -46,5 +46,8 @@ jobs:
       - name: Build package
         run: vp run build
 
+      - name: Check emoji coverage
+        run: vp run check:coverage
+
       - name: Verify CI package
         run: vp run verify:ci

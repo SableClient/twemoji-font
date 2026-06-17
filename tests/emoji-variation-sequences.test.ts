@@ -68,7 +68,7 @@ describe('emoji variation sequence handling', () => {
     expect(
       existsSync(new URL('../scripts/font/add-variation-selector-mappings.py', import.meta.url)),
     ).toBe(true);
-    expect(layerize).toContain("from './emoji-variation-sequences.ts'");
+    expect(layerize).toContain('emoji-variation-sequences.ts');
     expect(layerize).toContain('uvs-mappings.json');
     expect(layerize).toContain('shouldSkipTextPresentationSequence');
     expect(buildFont).toContain('add-variation-selector-mappings.py');

@@ -20,13 +20,14 @@ describe('tooling surface', () => {
       'check:upstream': 'node scripts/upstream/check-upstream.ts',
       'prepare:upstream': 'node scripts/upstream/publish-prepare.ts',
       'check:repeatability': 'node scripts/verify/check-build-repeatability.ts',
+      'check:coverage': 'node scripts/verify/coverage-audit.ts',
       'verify:ci': 'vp run typecheck && vp run smoke',
       test: 'vp test run',
       lint: 'vp lint',
       fmt: 'vp fmt',
       check: 'vp check',
       verify:
-        'vp run build && vp run test && vp run typecheck && vp run smoke && vp run check:repeatability',
+        'vp run build && vp run test && vp run typecheck && vp run smoke && vp run check:coverage && vp run check:repeatability',
     });
     expect(lockfile).toContain('overrides:');
     expect(lockfile).toContain('vite: npm:@voidzero-dev/vite-plus-core@^0.1.18');

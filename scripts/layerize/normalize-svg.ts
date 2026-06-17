@@ -10,9 +10,14 @@ const svgoConfig: Config = {
           convertColors: {
             shortname: false,
           },
+          convertShapeToPath: {
+            convertArcs: true,
+          },
+          convertPathData: false,
           inlineStyles: {
             onlyMatchedOnce: false,
           },
+          mergePaths: false,
           removeUselessStrokeAndFill: {
             removeNone: true,
           },
