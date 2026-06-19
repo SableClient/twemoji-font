@@ -1,6 +1,7 @@
 import { cpSync, existsSync, mkdirSync, rmSync, writeFileSync } from 'node:fs';
 import { execFileSync } from 'node:child_process';
 import { join } from 'node:path';
+import { buildUnicodeRangeCssFromCodepointsFile, resolveCodepointsPath } from './unicode-range.ts';
 
 const root = process.cwd();
 const distDir = join(root, 'dist');
@@ -59,26 +60,16 @@ function ensureWoff2(): string {
   return inputWoff2;
 }
 
-function createFontFaceCss(src: string): string {
+function createFontFaceCss(src: string, codepointsFile: string): string {
+  const unicodeRange = buildUnicodeRangeCssFromCodepointsFile(codepointsFile);
+
   return [
     '@font-face {',
     "  font-family: 'Twemoji';",
     `  src: ${src};`,
     '  font-display: swap;',
     '  unicode-range:',
-    '    U+1F300-1FAF8,',
-    '    U+2600-27BF,',
-    '    U+2300-23FF,',
-    '    U+2B50,',
-    '    U+2B55,',
-    '    U+3030,',
-    '    U+303D,',
-    '    U+3297,',
-    '    U+3299,',
-    '    U+FE0F,',
-    '    U+200D,',
-    '    U+20E3,',
-    '    U+1F1E6-1F1FF;',
+    unicodeRange.replace(/,$/, ';'),
     '}',
     '',
     '/* Apply Twemoji before text fonts: font-family: Twemoji, var(--font-secondary), sans-serif; */',
@@ -94,9 +85,11 @@ mkdirSync(distFilesDir, { recursive: true });
 logStage('copying packaged font files');
 cpSync(ensureWoff2(), distWoff2);
 
+const codepointsFile = resolveCodepointsPath(root);
+
 logStage('writing CSS entrypoint');
 writeFileSync(
   join(distDir, 'index.css'),
-  createFontFaceCss("url('./files/twemoji.woff2') format('woff2')"),
+  createFontFaceCss("url('./files/twemoji.woff2') format('woff2')", codepointsFile),
 );
 logStage('dist package ready');

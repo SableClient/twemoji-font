@@ -2,6 +2,13 @@ import assert from 'node:assert/strict';
 import { existsSync, readFileSync } from 'node:fs';
 import pkg from '../../package.json' with { type: 'json' };
 import {
+  filterUnicodeRangeCodepoints,
+  findUncoveredCodepoints,
+  parseUnicodeRangeCss,
+  readCodepointsFromBuildFile,
+  resolveCodepointsPath,
+} from '../package/unicode-range.ts';
+import {
   readFontTableSummary,
   resolveBuiltFontPath,
   resolvePackagedWoff2Path,
@@ -20,8 +27,20 @@ assert.equal(existsSync(new URL('../../dist/metadata.json', import.meta.url)), f
 const indexCss = readFileSync(new URL('../../dist/index.css', import.meta.url), 'utf8');
 assert.match(indexCss, /src: url\('\.\/files\/twemoji\.woff2'\) format\('woff2'\);/);
 assert.match(indexCss, /unicode-range:/);
-assert.match(indexCss, /U\+1F300-1FAF8/);
 assert.equal(indexCss.includes('truetype'), false);
+
+const codepointsFile = resolveCodepointsPath();
+if (existsSync(codepointsFile)) {
+  const uncovered = findUncoveredCodepoints(
+    filterUnicodeRangeCodepoints(readCodepointsFromBuildFile(codepointsFile)),
+    parseUnicodeRangeCss(indexCss),
+  );
+  assert.equal(
+    uncovered.length,
+    0,
+    `dist/index.css misses codepoints: ${uncovered.map((cp) => `U+${cp.toString(16).toUpperCase()}`).join(', ')}`,
+  );
+}
 
 const builtFontSummary = readFontTableSummary(resolveBuiltFontPath());
 if (builtFontSummary) {
