@@ -1,6 +1,12 @@
 # Changelog
 
 All notable changes to this project will be documented in this file.
+## 1.0.4 (2026-06-19)
+
+### Fixes
+
+- Generate CSS `unicode-range` from built codepoint mappings so emoji outside the old static ranges render from Twemoji instead of falling back to OS emoji.
+
 ## 1.0.3 (2026-06-17)
 
 ### Fixes
